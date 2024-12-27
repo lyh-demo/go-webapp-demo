@@ -1,0 +1,405 @@
+basePath: /api
+definitions:
+  dto.BookDto:
+    properties:
+      categoryId:
+        type: integer
+      formatId:
+        type: integer
+      isbn:
+        maxLength: 20
+        minLength: 10
+        type: string
+      title:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - isbn
+    - title
+    type: object
+  dto.LoginDto:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  model.Account:
+    properties:
+      authority:
+        $ref: '#/definitions/model.Authority'
+      authority_id:
+        type: integer
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  model.Authority:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  model.Book:
+    properties:
+      category:
+        $ref: '#/definitions/model.Category'
+      categoryId:
+        type: integer
+      format:
+        $ref: '#/definitions/model.Format'
+      formatId:
+        type: integer
+      id:
+        type: integer
+      isbn:
+        type: string
+      title:
+        type: string
+    type: object
+  model.Category:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  model.Format:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  model.Page:
+    properties:
+      content:
+        items:
+          $ref: '#/definitions/model.Book'
+        type: array
+      last:
+        type: boolean
+      numberOfElements:
+        type: integer
+      page:
+        type: integer
+      size:
+        type: integer
+      totalElements:
+        type: integer
+      totalPages:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is API specification for go-webapp-demo project.
+  license:
+    name: GNU General Public License v3.0
+    url: https://github.com/lyh-demo/go-webapp-demo/blob/main/LICENSE
+  title: go-webapp-demo API
+  version: 0.0.1
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login using username and password.
+      parameters:
+      - description: Username and Password for logged-in.
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to the authentication.
+          schema:
+            $ref: '#/definitions/model.Account'
+        "401":
+          description: Failed to the authentication.
+          schema:
+            type: boolean
+      summary: Login using username and password.
+      tags:
+      - Auth
+  /auth/loginAccount:
+    get:
+      consumes:
+      - application/json
+      description: Get the account data of logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to fetch the account data. If the security function
+            is disable, it returns the dummy data.
+          schema:
+            $ref: '#/definitions/model.Account'
+        "401":
+          description: The current user haven't logged-in yet. Returns false.
+          schema:
+            type: boolean
+      summary: Get the account data of logged-in user.
+      tags:
+      - Auth
+  /auth/loginStatus:
+    get:
+      consumes:
+      - application/json
+      description: Get the login status of current logged-in user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: The current user have already logged-in. Returns true.
+          schema:
+            type: boolean
+        "401":
+          description: The current user haven't logged-in yet. Returns false.
+          schema:
+            type: boolean
+      summary: Get the login status.
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Logout.
+      tags:
+      - Auth
+  /books:
+    get:
+      consumes:
+      - application/json
+      description: Get the list of matched books by searching
+      parameters:
+      - description: Keyword
+        in: query
+        name: query
+        type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Item size per page
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to fetch a book list.
+          schema:
+            $ref: '#/definitions/model.Page'
+        "400":
+          description: Failed to fetch data.
+          schema:
+            type: string
+        "401":
+          description: Failed to the authentication. Returns false.
+          schema:
+            type: boolean
+      summary: Get a book list
+      tags:
+      - Books
+    post:
+      consumes:
+      - application/json
+      description: Create a new book
+      parameters:
+      - description: a new book data for creating
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BookDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to create a new book.
+          schema:
+            $ref: '#/definitions/model.Book'
+        "400":
+          description: Failed to the registration.
+          schema:
+            type: string
+        "401":
+          description: Failed to the authentication. Returns false.
+          schema:
+            type: boolean
+      summary: Create a new book
+      tags:
+      - Books
+  /books/{book_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete the existing book
+      parameters:
+      - description: Book ID
+        in: path
+        name: book_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to delete the existing book.
+          schema:
+            $ref: '#/definitions/model.Book'
+        "400":
+          description: Failed to delete.
+          schema:
+            type: string
+        "401":
+          description: Failed to the authentication. Returns false.
+          schema:
+            type: boolean
+      summary: Delete the existing book
+      tags:
+      - Books
+    get:
+      consumes:
+      - application/json
+      description: Get a book
+      parameters:
+      - description: Book ID
+        in: path
+        name: book_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to fetch data.
+          schema:
+            $ref: '#/definitions/model.Book'
+        "400":
+          description: Failed to fetch data.
+          schema:
+            type: string
+        "401":
+          description: Failed to the authentication. Returns false.
+          schema:
+            type: boolean
+      summary: Get a book
+      tags:
+      - Books
+    put:
+      consumes:
+      - application/json
+      description: Update the existing book
+      parameters:
+      - description: Book ID
+        in: path
+        name: book_id
+        required: true
+        type: integer
+      - description: the book data for updating
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.BookDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to update the existing book.
+          schema:
+            $ref: '#/definitions/model.Book'
+        "400":
+          description: Failed to the update.
+          schema:
+            type: string
+        "401":
+          description: Failed to the authentication. Returns false.
+          schema:
+            type: boolean
+      summary: Update the existing book
+      tags:
+      - Books
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Get a category list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to fetch a category list.
+          schema:
+            items:
+              $ref: '#/definitions/model.Category'
+            type: array
+        "401":
+          description: Failed to the authentication.
+          schema:
+            type: string
+      summary: Get a category list
+      tags:
+      - Categories
+  /formats:
+    get:
+      consumes:
+      - application/json
+      description: Get a format list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success to fetch a format list.
+          schema:
+            items:
+              $ref: '#/definitions/model.Format'
+            type: array
+        "401":
+          description: Failed to the authentication.
+          schema:
+            type: string
+      summary: Get a format list
+      tags:
+      - Formats
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Get the status of this application
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'healthy: This application is started.'
+          schema:
+            type: string
+        "404":
+          description: 'None: This application is stopped.'
+          schema:
+            type: string
+      summary: Get the status of this application
+      tags:
+      - Health
+swagger: "2.0"
